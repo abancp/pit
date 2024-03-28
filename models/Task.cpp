@@ -33,7 +33,7 @@ public:
         }
         case 3:
         {
-            std::string stage = "closed";
+            stage = "closed";
             break;
         }
         }
@@ -107,7 +107,7 @@ private:
             return user;
         }
     }
-    
+
 public:
     void setTask()
     {
