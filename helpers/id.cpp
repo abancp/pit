@@ -19,7 +19,7 @@ std::string generateUniqueId() {
         randomString += dis(gen);
     }
 
-    std::string uniqueId = timeString + randomString;
+    std::string uniqueId = timeString + randomString;   
 
     if (uniqueId.length() < 20) {
         uniqueId += std::string(20 - uniqueId.length(), 'a');

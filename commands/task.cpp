@@ -23,17 +23,23 @@ void task(int argc, const char **argv)
 
                 std::string taskName = argv[3];
 
-                switch(flagsMap[argv[4]]){
-                    case 1:
-                    addTask(taskName,1);
+                switch (flagsMap[argv[4]])
+                {
+                case 1:
+                    addTask(taskName, 1);
                     break;
-                    case 2:
-                    addTask(taskName,2);
+                case 2:
+                    addTask(taskName, 2);
                     break;
-                    case 3:
-                    addTask(taskName,3);
+                case 3:
+                    addTask(taskName, 3);
                     break;
                 }
+            }
+            else if (argc == 4)
+            {
+                std::string taskName = argv[3];
+                addTask(taskName, 1);
             }
         }
     }

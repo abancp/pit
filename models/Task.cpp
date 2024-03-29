@@ -7,12 +7,16 @@
 #include "../helpers/id.cpp"
 
 namespace fs = std::filesystem;
-
 class Task
 {
 public:
     std::string name;
     std::string stage;
+    struct User
+    {
+        std::string name;
+        std::string mail;
+    };
 
     Task(std::string taskName, int type)
     {
@@ -38,12 +42,6 @@ public:
         }
         }
     }
-
-    struct User
-    {
-        std::string name;
-        std::string mail;
-    };
 
 private:
     User getUser()
@@ -97,7 +95,6 @@ private:
             }
             infile.close();
             User user = {username, usermail};
-            std::cout << "File read successfully." << std::endl;
             return user;
         }
         else
@@ -108,13 +105,57 @@ private:
         }
     }
 
+    int hash(std::string taskStr)
+    {
+        int hashed = 0;
+        if (taskStr.length() > 2)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                hashed += int(taskStr[i]);
+            }
+            return hashed % 10;
+        }
+        else
+        {
+            for (int i = 0; i < taskStr.length(); i++)
+            {
+                hashed += int(taskStr[i]);
+            }
+            return hashed % 10;
+        }
+    }
+
+    bool checkExist(std::string taskName)
+    {
+        std::stringstream string;
+        string << hash(taskName);
+        std::string hashed = string.str();
+        fs::path filePath = fs::current_path() / ".pit" / "active" / hashed;
+
+        std::ifstream infile(filePath);
+
+        if (infile.is_open())
+        {
+            std::string line;
+            while (std::getline(infile, line))
+            {
+                line
+            }
+            infile.close();
+        }
+    }
+
 public:
     void setTask()
     {
         fs::path pitFolder = fs::current_path() / ".pit";
         if (fs::exists(pitFolder))
         {
-            fs::path filePath = pitFolder / "tasks" / stage;
+            std::stringstream string;
+            string << hash(name);
+            std::string hashed = string.str();
+            fs::path filePath = pitFolder / "tasks" / stage / hashed;
             std::ofstream outfile(filePath, std::ios::app);
             User user = getUser();
             if (outfile.is_open())

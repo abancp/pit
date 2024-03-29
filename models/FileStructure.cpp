@@ -6,12 +6,7 @@ namespace fs = std::filesystem;
 
 class FileStructure
 {
-    //.pit
-      //Tasks
-        //active
-        //working
-        //closed
-      //Devs
+
 private:
     fs::path cwd = fs::current_path();
     fs::path dotpit = cwd / ".pit";
@@ -23,17 +18,22 @@ private:
 public:
 
   void makeFile(){
-    fs::create_directory(dotpit);
-    fs::create_directory(tasks);
-    fs::path taskFiles[3] = {active,working,closed};
-    for(int i = 0 ; i < 3 ; i++){
-      std::ofstream outFile(taskFiles[i]);
-      if (outFile.is_open()) {
+    fs::path taskFiles[5] = {dotpit,tasks,active,working,closed};
+    for(int i = 0 ; i < 5 ; i++){
+      fs::create_directories(taskFiles[i]);
+    }
+    for(int i = 2;i < 5;i++){
+      for(int j = 0 ; j < 10;j++){
+        std::ofstream outFile(taskFiles[i]/std::to_string(j));
+        if (outFile.is_open()) {
           outFile.close();
-      }else{
+        }else{
           std::cout << "can't create file" << std::endl;
+        }
       }
     }
+    
+      
     
   }
 
