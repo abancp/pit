@@ -2,14 +2,14 @@
 #include <string>
 #include <chrono>
 #include <random>
+#include "./hash.cpp"
 
-std::string generateUniqueId() {
+std::string generateTUID(std::string taskName)
+{
     auto now = std::chrono::system_clock::now();
     auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
     auto epoch = now_ms.time_since_epoch();
     auto value = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
-
-    std::string timeString = std::to_string(value.count());
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -19,14 +19,17 @@ std::string generateUniqueId() {
         randomString += dis(gen);
     }
 
-    std::string uniqueId = timeString + randomString;   
+    std::string timeString = std::to_string(value.count());
+    std::string UID = hash(taskName) + "|" + timeString + randomString;
 
-    if (uniqueId.length() < 20) {
-        uniqueId += std::string(20 - uniqueId.length(), 'a');
-    } else if (uniqueId.length() > 20) {
-        uniqueId = uniqueId.substr(0, 20);
+    if (UID.length() < 20)
+    {
+        UID += std::string(20 - UID.length(), 'a');
+    }
+    else if (UID.length() > 20)
+    {
+        UID = UID.substr(0, 20);
     }
 
-    return uniqueId;
+    return UID;
 }
-

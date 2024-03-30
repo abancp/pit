@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <fstream>
 #include "../helpers/id.cpp"
+#include "../helpers/split.cpp"
 
 namespace fs = std::filesystem;
 class Task
@@ -105,7 +106,7 @@ private:
         }
     }
 
-    int hash(std::string taskStr)
+    int hashToOneDigit(std::string taskStr)
     {
         int hashed = 0;
         if (taskStr.length() > 2)
@@ -129,9 +130,9 @@ private:
     bool checkExist(std::string taskName)
     {
         std::stringstream string;
-        string << hash(taskName);
+        string << hashToOneDigit(taskName);
         std::string hashed = string.str();
-        fs::path filePath = fs::current_path() / ".pit" / "active" / hashed;
+        fs::path filePath = fs::current_path() / ".pit" / "tasks" / "active" / hashed;
 
         std::ifstream infile(filePath);
 
@@ -140,10 +141,19 @@ private:
             std::string line;
             while (std::getline(infile, line))
             {
-                line
+                std::string lineHash = line.substr(0, 3);
+                if (lineHash == hash(name))
+                {
+                    std::vector taskProps = splitString(line, '~');
+                    if (name == taskProps[1])
+                    {
+                        return true;
+                    }
+                }
             }
             infile.close();
         }
+        return false;
     }
 
 public:
@@ -152,16 +162,23 @@ public:
         fs::path pitFolder = fs::current_path() / ".pit";
         if (fs::exists(pitFolder))
         {
-            std::stringstream string;
-            string << hash(name);
-            std::string hashed = string.str();
-            fs::path filePath = pitFolder / "tasks" / stage / hashed;
-            std::ofstream outfile(filePath, std::ios::app);
-            User user = getUser();
-            if (outfile.is_open())
+            if (checkExist(name))
             {
-                outfile << generateUniqueId() << "~" << name << "~" << user.name << "~" << user.mail << "\n";
-                outfile.close();
+                std::cout << "task already active \nuse ' pit task ' to see all tasks" << std::endl;
+            }
+            else
+            {
+                std::stringstream string;
+                string << hashToOneDigit(name);
+                std::string hashed = string.str();
+                fs::path filePath = pitFolder / "tasks" / stage / hashed;
+                std::ofstream outfile(filePath, std::ios::app);
+                User user = getUser();
+                if (outfile.is_open())
+                {
+                    outfile << generateTUID(name) << "~" << name << "~" << user.name << "~" << user.mail << "\n";
+                    outfile.close();
+                }
             }
         }
         else
