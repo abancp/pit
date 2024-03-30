@@ -4,8 +4,8 @@
 #include <pwd.h>
 #include <unistd.h>
 #include <fstream>
-#include "../helpers/id.cpp"
-#include "../helpers/split.cpp"
+#include "../helpers/utils/id.cpp"
+#include "../helpers/utils/split.cpp"
 
 namespace fs = std::filesystem;
 class Task
@@ -132,28 +132,35 @@ private:
         std::stringstream string;
         string << hashToOneDigit(taskName);
         std::string hashed = string.str();
-        fs::path filePath = fs::current_path() / ".pit" / "tasks" / "active" / hashed;
-
-        std::ifstream infile(filePath);
-
-        if (infile.is_open())
+        std::string stages[3] = {"active", "working", "closed"};
+        for (const std::string stage : stages)
         {
-            std::string line;
-            while (std::getline(infile, line))
+
+            fs::path filePath = fs::current_path() / ".pit" / "tasks" / stage / hashed;
+
+            std::ifstream infile(filePath);
+
+            if (infile.is_open())
             {
-                std::string lineHash = line.substr(0, 3);
-                if (lineHash == hash(name))
+                std::string line;
+                while (std::getline(infile, line))
                 {
-                    std::vector taskProps = splitString(line, '~');
-                    if (name == taskProps[1])
+                    std::string lineHash = line.substr(0, 3);
+                    if (lineHash == hash(name))
                     {
-                        return true;
+                        std::vector taskProps = splitString(line, '~');
+                        if (name == taskProps[1])
+                        {
+                            infile.close();
+                            return true;
+                        }
                     }
                 }
+                infile.close();
+                return false;
             }
-            infile.close();
+            std::cout << "Unexpected error while opening files" << std::endl;
         }
-        return false;
     }
 
 public:
