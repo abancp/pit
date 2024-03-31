@@ -159,6 +159,7 @@ private:
                             if (stage == "active")
                             {
                                 std::cout << " Task already " << fileStage << " . 'pit task' to see all tasks " << std::endl;
+                                exit(0);
                                 return lineArray;
                             }
                             if (fileStage == "active")
@@ -199,9 +200,11 @@ private:
         fs::path filePath = pitFolder / "tasks" / stage / hashed;
         std::ofstream outfile(filePath, std::ios::app);
         User user = getUser();
+        std::string TUID = generateTUID(name);
+        std::cout << "   " << TUID <<"\n" << name << "\n" << user.name <<  std::endl;
         if (outfile.is_open())
         {
-            outfile << generateTUID(name) << "~" << name << "~" << user.name << "~" << user.mail << "\n";
+            outfile << TUID << "~" << name << "~" << user.name << "~" << user.mail << "\n";
             outfile.close();
             return 0;
         }

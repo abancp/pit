@@ -12,7 +12,6 @@ int removeLine(const std::string filename, int lineToRemove) {
 
     while (std::getline(fin, line)) {
         lineNumber++;
-        std::cout << line << std::endl;
         if (lineNumber != lineToRemove) {
             temp << line << std::endl;
         }

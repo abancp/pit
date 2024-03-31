@@ -20,7 +20,7 @@ std::string generateTUID(std::string taskName)
     }
 
     std::string timeString = std::to_string(value.count());
-    std::string UID = hash(taskName) + "|" + timeString + randomString;
+    std::string UID = hash(taskName) + "/" + timeString + randomString;
 
     if (UID.length() < 20)
     {
