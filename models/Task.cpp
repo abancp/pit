@@ -4,8 +4,10 @@
 #include <pwd.h>
 #include <unistd.h>
 #include <fstream>
+#include <vector>
 #include "../helpers/utils/id.cpp"
 #include "../helpers/utils/split.cpp"
+#include "../helpers/utils/removeLine.cpp"
 
 namespace fs = std::filesystem;
 class Task
@@ -127,24 +129,26 @@ private:
         }
     }
 
-    bool checkExist(std::string taskName)
+    std::vector<int> checkExist(std::string taskName)
     {
+        std::vector<int> lineArray;
         std::stringstream string;
         string << hashToOneDigit(taskName);
         std::string hashed = string.str();
         std::string stages[3] = {"active", "working", "closed"};
-        for (const std::string stage : stages)
+        for (const std::string fileStage : stages)
         {
 
-            fs::path filePath = fs::current_path() / ".pit" / "tasks" / stage / hashed;
+            fs::path filePath = fs::current_path() / ".pit" / "tasks" / fileStage / hashed;
 
             std::ifstream infile(filePath);
-
+            int lineNo = 0;
             if (infile.is_open())
             {
                 std::string line;
                 while (std::getline(infile, line))
                 {
+                    lineNo++;
                     std::string lineHash = line.substr(0, 3);
                     if (lineHash == hash(name))
                     {
@@ -152,14 +156,59 @@ private:
                         if (name == taskProps[1])
                         {
                             infile.close();
-                            return true;
+                            if (stage == "active")
+                            {
+                                std::cout << " Task already " << fileStage << " . 'pit task' to see all tasks " << std::endl;
+                                return lineArray;
+                            }
+                            if (fileStage == "active")
+                            {
+                                lineArray.push_back(1);
+                                lineArray.push_back(lineNo);
+                                return lineArray;
+                            }
+                            else if (fileStage == "working")
+                            {
+                                lineArray.push_back(2);
+                                lineArray.push_back(lineNo);
+                                return lineArray;
+                            }
+                            else
+                            {
+                                lineArray.push_back(3);
+                                lineArray.push_back(lineNo);
+                                return lineArray;
+                            }
                         }
                     }
                 }
                 infile.close();
-                return false;
             }
+            else
+            {
+                std::cout << "Unexpected error while opening files" << std::endl;
+            }
+        }
+        lineArray.push_back(0);
+        return lineArray;
+    }
+
+    int writeTaskToFile(fs::path pitFolder, std::string hashed)
+    {
+        
+        fs::path filePath = pitFolder / "tasks" / stage / hashed;
+        std::ofstream outfile(filePath, std::ios::app);
+        User user = getUser();
+        if (outfile.is_open())
+        {
+            outfile << generateTUID(name) << "~" << name << "~" << user.name << "~" << user.mail << "\n";
+            outfile.close();
+            return 0;
+        }
+        else
+        {
             std::cout << "Unexpected error while opening files" << std::endl;
+            return 1;
         }
     }
 
@@ -169,23 +218,47 @@ public:
         fs::path pitFolder = fs::current_path() / ".pit";
         if (fs::exists(pitFolder))
         {
-            if (checkExist(name))
+            std::vector<int> existCode = checkExist(name);
+
+            std::stringstream string;
+            string << hashToOneDigit(name);
+            std::string hashed = string.str();
+
+            if (existCode[0] == 0 && stage == "active")
             {
-                std::cout << "task already active \nuse ' pit task ' to see all tasks" << std::endl;
+                writeTaskToFile(pitFolder, hashed);
+                return;
             }
-            else
+            std::cout << existCode[0] << stage << std::endl;
+            if (existCode[0] == 1 && stage == "working")
             {
-                std::stringstream string;
-                string << hashToOneDigit(name);
-                std::string hashed = string.str();
-                fs::path filePath = pitFolder / "tasks" / stage / hashed;
-                std::ofstream outfile(filePath, std::ios::app);
-                User user = getUser();
-                if (outfile.is_open())
-                {
-                    outfile << generateTUID(name) << "~" << name << "~" << user.name << "~" << user.mail << "\n";
-                    outfile.close();
-                }
+                std::string removeFilePath = pitFolder / "tasks" / "active" / hashed;
+                removeLine(removeFilePath,existCode[1]);
+                std::cout << "/* message */" << std::endl;
+                writeTaskToFile(pitFolder, hashed);
+                return;
+            }
+            if (existCode[0] == 2 && stage == "closed")
+            {
+                std::string removeFilePath = pitFolder / "tasks" / "working" / hashed;
+                removeLine(removeFilePath, existCode[1]);
+                writeTaskToFile(pitFolder, hashed);
+                return;
+            }
+            if ((existCode[0] == 0 || existCode[0] == 1) && stage == "closed")
+            {
+                std::cout << "task is not in working , only working tasks can close" << std::endl;
+                return;
+            }
+            if (existCode[0] == 0 && stage == "working")
+            {
+                std::cout << "Task not in active , only active tasks can work" << std::endl;
+                return;
+            }
+            if (existCode[0] == 3 && stage == "working")
+            {
+                std::cout << "Task already closed" << std::endl;
+                return;
             }
         }
         else

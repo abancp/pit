@@ -21,9 +21,9 @@ void task(int argc, const char **argv)
                     {"--close", 3},
                 };
 
-                std::string taskName = argv[3];
+                std::string taskName = argv[4];
 
-                switch (flagsMap[argv[4]])
+                switch (flagsMap[argv[3]])
                 {
                 case 1:
                     addTask(taskName, 1);
@@ -42,5 +42,7 @@ void task(int argc, const char **argv)
                 addTask(taskName, 1);
             }
         }
+    }else{
+        //TODO: Usage
     }
 }
