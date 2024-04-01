@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include "../helpers/task/getTasks.cpp"
 #include "../helpers/task/addTask.cpp"
 
 void task(int argc, const char **argv)
@@ -42,7 +43,13 @@ void task(int argc, const char **argv)
                 addTask(taskName, 1);
             }
         }
-    }else{
-        //TODO: Usage
+    }
+    else
+    {
+        if (argc == 2)
+        {
+            getTask(false);
+        }
+        // TODO: Usage
     }
 }

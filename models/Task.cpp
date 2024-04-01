@@ -8,9 +8,7 @@
 #include <stdlib.h>
 #include <ctime>
 #include "../helpers/utils/id.cpp"
-#include "../helpers/utils/split.cpp"
 #include "../helpers/utils/removeLine.cpp"
-#include "../helpers/utils/getDateFromTime.cpp"
 
 #define YELLOW "\033[33m"
 #define RESET "\033[0m"
@@ -214,8 +212,8 @@ private:
             std::cout << "\t Id   : " << YELLOW << TUID << RESET << "\n"
                       << "\t Task : " << name << "\n"
                       << "\t Dev  : " << user.name << "\n"
-                      << "\t Date : " << date->tm_year << " " << date->tm_mon << " " << date->tm_mday << " " <<  date->tm_hour << ":" << date->tm_min << ":" << date->tm_sec << std::endl ;
-                      outfile << TUID << "~" << name << "~" << user.name << "~" << user.mail << "\n";
+                      << "\t Date : " << date->tm_year << " " << date->tm_mon << " " << date->tm_mday << " " << date->tm_hour << ":" << date->tm_min << ":" << date->tm_sec << std::endl;
+            outfile << TUID << "~" << name << "~" << user.name << "~" << user.mail << "\n";
             outfile.close();
             return 0;
         }
