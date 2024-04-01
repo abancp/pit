@@ -5,9 +5,15 @@
 #include <unistd.h>
 #include <fstream>
 #include <vector>
+#include <stdlib.h>
+#include <ctime>
 #include "../helpers/utils/id.cpp"
 #include "../helpers/utils/split.cpp"
 #include "../helpers/utils/removeLine.cpp"
+#include "../helpers/utils/getDateFromTime.cpp"
+
+#define YELLOW "\033[33m"
+#define RESET "\033[0m"
 
 namespace fs = std::filesystem;
 class Task
@@ -196,15 +202,20 @@ private:
 
     int writeTaskToFile(fs::path pitFolder, std::string hashed)
     {
-        
+
         fs::path filePath = pitFolder / "tasks" / stage / hashed;
         std::ofstream outfile(filePath, std::ios::app);
         User user = getUser();
         std::string TUID = generateTUID(name);
-        std::cout << "   " << TUID <<"\n" << name << "\n" << user.name <<  std::endl;
         if (outfile.is_open())
         {
-            outfile << TUID << "~" << name << "~" << user.name << "~" << user.mail << "\n";
+            long long timeMilliSeconds = std::stoll(TUID.substr(4, 17));
+            std::tm *date = getDateFromTime(timeMilliSeconds);
+            std::cout << "\t Id   : " << YELLOW << TUID << RESET << "\n"
+                      << "\t Task : " << name << "\n"
+                      << "\t Dev  : " << user.name << "\n"
+                      << "\t Date : " << date->tm_year << " " << date->tm_mon << " " << date->tm_mday << " " <<  date->tm_hour << ":" << date->tm_min << ":" << date->tm_sec << std::endl ;
+                      outfile << TUID << "~" << name << "~" << user.name << "~" << user.mail << "\n";
             outfile.close();
             return 0;
         }
@@ -232,12 +243,10 @@ public:
                 writeTaskToFile(pitFolder, hashed);
                 return;
             }
-            std::cout << existCode[0] << stage << std::endl;
             if (existCode[0] == 1 && stage == "working")
             {
                 std::string removeFilePath = pitFolder / "tasks" / "active" / hashed;
-                removeLine(removeFilePath,existCode[1]);
-                std::cout << "/* message */" << std::endl;
+                removeLine(removeFilePath, existCode[1]);
                 writeTaskToFile(pitFolder, hashed);
                 return;
             }
