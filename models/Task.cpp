@@ -25,6 +25,12 @@ public:
         std::string name;
         std::string mail;
     };
+    struct existTask
+    {
+        int stageNo;
+        int lineNO;
+        std::string taskName;
+    };
 
     Task(std::string taskName, int type, bool isId0)
     {
@@ -121,10 +127,8 @@ private:
         {
             for (int i = 0; i < 3; i++)
             {
-                std::cout << int(taskStr[i]) << "|" << hashed << std::endl;
                 hashed += int(taskStr[i]);
             }
-                std::cout  << hashed << std::endl;
 
             return hashed % 10;
         }
@@ -138,13 +142,13 @@ private:
         }
     }
 
-    std::vector<int> checkExist(std::string taskName)
+    existTask checkExist(std::string taskName)
     {
-        std::vector<int> lineArray;
+        existTask returnExistTask;
         std::string hashed;
         if (isId)
         {
-            hashed = taskName.substr(3, 1);
+            hashed = taskName.substr(2, 1);
         }
         else
         {
@@ -156,7 +160,6 @@ private:
         std::string stages[3] = {"active", "working", "closed"};
         for (const std::string fileStage : stages)
         {
-
             fs::path filePath = fs::current_path() / ".pit" / "tasks" / fileStage / hashed;
 
             std::ifstream infile(filePath);
@@ -173,6 +176,8 @@ private:
                     {
                         std::vector taskProps = splitString(line, '~');
                         std::string taskMatch = isId ? taskProps[0] : taskProps[1];
+                        std::string fileTaskName = taskProps[1];
+                        std::cout << taskProps[1] << std::endl;
                         if (name == taskMatch)
                         {
                             infile.close();
@@ -180,25 +185,22 @@ private:
                             {
                                 std::cout << " Task already " << fileStage << " . 'pit task' to see all tasks " << std::endl;
                                 exit(0);
-                                return lineArray;
+                                return returnExistTask;
                             }
                             if (fileStage == "active")
                             {
-                                lineArray.push_back(1);
-                                lineArray.push_back(lineNo);
-                                return lineArray;
+                                returnExistTask = {1, lineNo, fileTaskName};
+                                return returnExistTask;
                             }
                             else if (fileStage == "working")
                             {
-                                lineArray.push_back(2);
-                                lineArray.push_back(lineNo);
-                                return lineArray;
+                                returnExistTask = {2, lineNo, fileTaskName};
+                                return returnExistTask;
                             }
                             else
                             {
-                                lineArray.push_back(3);
-                                lineArray.push_back(lineNo);
-                                return lineArray;
+                                returnExistTask = {3, lineNo, fileTaskName};
+                                return returnExistTask;
                             }
                         }
                     }
@@ -210,27 +212,27 @@ private:
                 std::cout << "Unexpected error while opening files" << std::endl;
             }
         }
-        lineArray.push_back(0);
-        return lineArray;
+        returnExistTask = {0, 0, ""};
+        return returnExistTask;
     }
 
-    int writeTaskToFile(fs::path pitFolder, std::string hashed)
+    int writeTaskToFile(fs::path pitFolder, std::string hashed,std::string taskName)
     {
 
         fs::path filePath = pitFolder / "tasks" / stage / hashed;
-        std::cout << filePath << std::endl;
+        std::cout << "file :" << filePath << std::endl;
         std::ofstream outfile(filePath, std::ios::app);
         User user = getUser();
-        std::string TUID = generateTUID(name);
+        std::string TUID = generateTUID(taskName);
         if (outfile.is_open())
         {
             long long timeMilliSeconds = std::stoll(TUID.substr(4, 17));
             std::tm *date = getDateFromTime(timeMilliSeconds);
             std::cout << "\t Id   : " << YELLOW << TUID << RESET << "\n"
-                      << "\t Task : " << name << "\n"
+                      << "\t Task : " << taskName << "\n"
                       << "\t Dev  : " << user.name << "\n"
                       << "\t Date : " << date->tm_year << " " << date->tm_mon << " " << date->tm_mday << " " << date->tm_hour << ":" << date->tm_min << ":" << date->tm_sec << std::endl;
-            outfile << TUID << "~" << name << "~" << user.name << "~" << user.mail << "\n";
+            outfile << TUID << "~" << taskName << "~" << user.name << "~" << user.mail << "\n";
             outfile.close();
             return 0;
         }
@@ -247,11 +249,11 @@ public:
         fs::path pitFolder = fs::current_path() / ".pit";
         if (fs::exists(pitFolder))
         {
-            std::vector<int> existCode = checkExist(name);
+            existTask existCode = checkExist(name);
             std::string hashed;
             if (isId)
             {
-                hashed = name.substr(3, 1);
+                hashed = name.substr(2, 1);
             }
             else
             {
@@ -259,38 +261,36 @@ public:
                 string << hashToOneDigit(name);
                 hashed = string.str();
             }
-            std::cout << hashed << std::endl;
-
-            if (existCode[0] == 0 && stage == "active")
+            if (existCode.stageNo == 0 && stage == "active")
             {
-                writeTaskToFile(pitFolder, hashed);
+                writeTaskToFile(pitFolder, hashed ,name);
                 return;
             }
-            if (existCode[0] == 1 && stage == "working")
+            if (existCode.stageNo == 1 && stage == "working")
             {
                 std::string removeFilePath = pitFolder / "tasks" / "active" / hashed;
-                removeLine(removeFilePath, existCode[1]);
-                writeTaskToFile(pitFolder, hashed);
+                removeLine(removeFilePath, existCode.lineNO);
+                writeTaskToFile(pitFolder, hashed ,existCode.taskName);
                 return;
             }
-            if (existCode[0] == 2 && stage == "closed")
+            if (existCode.stageNo == 2 && stage == "closed")
             {
                 std::string removeFilePath = pitFolder / "tasks" / "working" / hashed;
-                removeLine(removeFilePath, existCode[1]);
-                writeTaskToFile(pitFolder, hashed);
+                removeLine(removeFilePath, existCode.lineNO);
+                writeTaskToFile(pitFolder, hashed ,existCode.taskName);
                 return;
             }
-            if ((existCode[0] == 0 || existCode[0] == 1) && stage == "closed")
+            if ((existCode.stageNo == 0 || existCode.stageNo == 1) && stage == "closed")
             {
                 std::cout << "task is not in working , only working tasks can close" << std::endl;
                 return;
             }
-            if (existCode[0] == 0 && stage == "working")
+            if (existCode.stageNo == 0 && stage == "working")
             {
                 std::cout << "Task not in active , only active tasks can work" << std::endl;
                 return;
             }
-            if (existCode[0] == 3 && stage == "working")
+            if (existCode.stageNo == 3 && stage == "working")
             {
                 std::cout << "Task already closed" << std::endl;
                 return;

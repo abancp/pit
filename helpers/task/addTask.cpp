@@ -6,20 +6,30 @@ void addTask(std::string taskName, int stage)
     {
         if (taskName.find('~') != std::string::npos || taskName.find('/') != std::string::npos || taskName.find('[') != std::string::npos || taskName.find(']') != std::string::npos || taskName.find('\\') != std::string::npos)
         {
-            std::cout << "Task name does not contain '|','[',']','/','\\' " << std::endl;
+            std::cout << "Task name can't contain '|','[',']','/','\\' " << std::endl;
             exit(0);
         }
         else
         {
-            Task task(taskName, stage,false);
+            Task task(taskName, stage, false);
             task.setTask();
         }
     }
     else
     {
-        if (taskName.find('~') != std::string::npos || taskName.find('/') == std::string::npos || taskName.find('[') != std::string::npos || taskName.find(']') != std::string::npos || taskName.find('\\') != std::string::npos)
+        if (taskName.find('~') != std::string::npos || taskName.find('[') != std::string::npos || taskName.find(']') != std::string::npos || taskName.find('\\') != std::string::npos)
         {
-            Task task(taskName, stage,true);
+            std::cout << "Task name can't contain '|','[',']','\\' " << std::endl;
+            exit(0);
+        }
+        else if (taskName.find('/') != std::string::npos)
+        {
+            Task task(taskName, stage, true);
+            task.setTask();
+        }
+        else
+        {
+            Task task(taskName, stage, false);
             task.setTask();
         }
     }
