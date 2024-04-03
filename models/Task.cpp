@@ -19,15 +19,17 @@ class Task
 public:
     std::string name;
     std::string stage;
+    bool isId;
     struct User
     {
         std::string name;
         std::string mail;
     };
 
-    Task(std::string taskName, int type)
+    Task(std::string taskName, int type, bool isId0)
     {
         name = taskName;
+        isId = isId0;
         stage;
 
         switch (type)
@@ -136,9 +138,18 @@ private:
     std::vector<int> checkExist(std::string taskName)
     {
         std::vector<int> lineArray;
-        std::stringstream string;
-        string << hashToOneDigit(taskName);
-        std::string hashed = string.str();
+        std::string hashed;
+        if (isId)
+        {
+            hashed = taskName.substr(3, 1);
+        }
+        else
+        {
+            std::stringstream string;
+            string << hashToOneDigit(taskName);
+            hashed = string.str();
+        }
+
         std::string stages[3] = {"active", "working", "closed"};
         for (const std::string fileStage : stages)
         {
@@ -154,10 +165,12 @@ private:
                 {
                     lineNo++;
                     std::string lineHash = line.substr(0, 3);
-                    if (lineHash == hash(name))
+                    std::string nameHash = isId ? name.substr(0, 3) : hash(name);
+                    if (lineHash == nameHash)
                     {
                         std::vector taskProps = splitString(line, '~');
-                        if (name == taskProps[1])
+                        std::string taskMatch = isId ? taskProps[0] : taskProps[1];
+                        if (name == taskMatch)
                         {
                             infile.close();
                             if (stage == "active")
@@ -202,6 +215,7 @@ private:
     {
 
         fs::path filePath = pitFolder / "tasks" / stage / hashed;
+        std::cout << filePath << std::endl;
         std::ofstream outfile(filePath, std::ios::app);
         User user = getUser();
         std::string TUID = generateTUID(name);
@@ -231,10 +245,18 @@ public:
         if (fs::exists(pitFolder))
         {
             std::vector<int> existCode = checkExist(name);
+            std::string hashed;
+            if (isId)
+            {
+                hashed = name.substr(3, 1);
+            }
+            else
+            {
 
-            std::stringstream string;
-            string << hashToOneDigit(name);
-            std::string hashed = string.str();
+                std::stringstream string;
+                string << hashToOneDigit(name);
+                hashed = string.str();
+            }
 
             if (existCode[0] == 0 && stage == "active")
             {

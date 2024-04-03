@@ -11,7 +11,7 @@ void task(int argc, const char **argv)
         std::string subCommand = argv[2];
         if (subCommand == "add")
         {
-            if (argc == 5)
+            if (argc == 5|| argc == 6)
             {
                 std::unordered_map<std::string, int> flagsMap = {
                     {"-a", 1},
