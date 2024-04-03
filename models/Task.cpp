@@ -121,8 +121,11 @@ private:
         {
             for (int i = 0; i < 3; i++)
             {
+                std::cout << int(taskStr[i]) << "|" << hashed << std::endl;
                 hashed += int(taskStr[i]);
             }
+                std::cout  << hashed << std::endl;
+
             return hashed % 10;
         }
         else
@@ -252,11 +255,11 @@ public:
             }
             else
             {
-
                 std::stringstream string;
                 string << hashToOneDigit(name);
                 hashed = string.str();
             }
+            std::cout << hashed << std::endl;
 
             if (existCode[0] == 0 && stage == "active")
             {

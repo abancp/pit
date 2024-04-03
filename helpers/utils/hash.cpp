@@ -8,7 +8,7 @@ std::string hash(std::string taskName)
     int hashed = 0;
     if (taskName.length() > 2)
     {
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 3; i++)
         {
             hashed += int(taskName[i]);
         }
