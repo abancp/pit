@@ -8,7 +8,6 @@
 #include "commands/config.cpp"
 
 
-
 int main(int argc, const char **argv)
 {
     std::unordered_map<std::string,int>  commandsMap  = {
